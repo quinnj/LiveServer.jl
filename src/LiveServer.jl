@@ -10,10 +10,8 @@ export serve, stop
 const BROWSER_RELOAD_SCRIPT = """
     <!-- browser-reload script, automatically added by the LiveServer.jl -->
     <script type="text/javascript">
-      var ws_M3sp9eAgRFN9y = new WebSocket("ws://" + location.host + location.pathname);
-      ws_M3sp9eAgRFN9y.onmessage = function(msg) {
-          location.reload();
-      };
+      var sock_M3sp9eAgRFN9y = new WebSocket("ws://" + location.host + location.pathname);
+      sock_M3sp9eAgRFN9y.onmessage = function(msg){location.reload();};
     </script>
     """
 
@@ -82,6 +80,11 @@ end
 ### WEBSOCKET HANDLING & UPGRADE
 ###
 
+mutable struct Viewers
+    wss::Vector{HTTP.WebSockets.WebSocket}
+    isopen::Bool
+end
+
 """
     message_viewers!(wss)
 
@@ -91,9 +94,13 @@ the message, the BROWSER_RELOAD_SCRIPT appended to the webpage(s) will trigger a
 """
 function message_viewers!(wss::Vector{HTTP.WebSockets.WebSocket}, ping::Bool=true)
     foreach(wss) do wsi
+        println("ping")
         write(wsi, "update")
+        println("close")
         close(wsi.io)
+        wsi.txclosed = true
     end
+    println("empty")
     empty!(wss)
     return nothing
 end
@@ -208,11 +215,11 @@ function serve(; port::Int=8000)
     # start listening
     println("✓ LiveServer listening on http://localhost:$port... (use CTRL+C to shut down)")
     @async begin
-        HTTP.listen(ip"127.0.0.1", port; server=server, readtimeout=0) do http::HTTP.Stream
+        HTTP.listen(Sockets.localhost, port; server=server, readtimeout=0) do http::HTTP.Stream
             if server.status != 4
+                closewrite(http)
                 return 0
-            end
-            if HTTP.WebSockets.is_upgrade(http.message)
+            elseif HTTP.WebSockets.is_upgrade(http.message)
                 handle_upgrade!(ws_tracker, http)
             else
                 HTTP.handle(HTTP.RequestHandlerFunction(req->file_server!(f_watcher, req)), http)
@@ -239,16 +246,20 @@ InterruptException (user pressed CTRL+C), clean up and end  program. Otherwise r
 function handle_error(err, f_watcher, ws_tracker, server)
     if isa(err, InterruptException)
         print("\n✓ LiveServer shutting down...")
-        # try to close any remaining websocket
-        for wss ∈ values(ws_tracker)
+        # close all remaining websockets
+        for (key, wss) ∈ ws_tracker
             for wsi ∈ wss
-                close(wsi.io)
+                if !wsi.txclosed
+                    close(wsi.io) # XXX
+                    wsi.txclosed = true
+                end
             end
         end
         # empty tracking dictionaries
         empty!.((f_watcher, ws_tracker))
         # close the server
         close(server)
+        # HTTP.get("http://localhost:8000")
         println("")
     else
         throw(err)
