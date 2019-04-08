@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "LiveServer.jl - Documentation",
     "category": "section",
-    "text": "LiveServer is a simple and lightweight development server written in Julia, based on HTTP.jl. It has live-reload capability, i.e. when changing files, every browser (tab) currently displaying a corresponding page is automatically refreshed. This updating is triggered via WebSockets and therefore only works with browsers supporting this feature (and also insecure ws:// connections to localhost).This package can be compared to python\'s http.server (but with live reload) or node\'s browsersync (but much simpler)."
+    "text": "LiveServer is a simple and lightweight development web-server written in Julia, based on HTTP.jl. It has live-reload capability, i.e. when changing files, every browser (tab) currently displaying a corresponding page is automatically refreshed.LiveServer is inspired from Python\'s http.server and Node\'s browsersync."
 },
 
 {
@@ -25,27 +25,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "#Quickstart-1",
+    "location": "#Usage-1",
     "page": "Home",
-    "title": "Quickstart",
+    "title": "Usage",
     "category": "section",
-    "text": "The (only) function LiveServer exports is serve which starts listening to the current folder and makes its content available to a browser. In a Julia session:using LiveServer # exports serve()\ncd(\"path/to/website/folder\") # e.g. the example folder in this repo\nserve()Then open http://localhost:8000 in a browser. Changing a HTML file (e.g. index.html) triggers a reload in all browsers currently displaying this file. Changes on any other files (e.g. .css, .js etc) currently trigger a reload in all connected viewers.So, for instance, if you have two tabs opened looking at index.html and pages/page1.html and a file main.css in the folder is modified, both tabs will be reloaded."
-},
-
-{
-    "location": "man/quickstart/#",
-    "page": "Quick start",
-    "title": "Quick start",
-    "category": "page",
-    "text": ""
-},
-
-{
-    "location": "man/quickstart/#Quickstart-1",
-    "page": "Quick start",
-    "title": "Quickstart",
-    "category": "section",
-    "text": "[coming soon...]"
+    "text": "The main function LiveServer exports is serve which starts listening to the current folder and makes its content available to a browser. The following code creates an example directory and serves it:julia> using LiveServer\njulia> LiveServer.example() # creates an \"example/\" folder with some files\njulia> cd(\"example\")\njulia> serve() # starts the local server & the file watching\n✓ LiveServer listening on http://localhost:8000...\n  (use CTRL+C to shut down)Open a Browser and go to http://localhost:8000 to see the content being rendered; try modifying files (such as index.html) to see the changes being rendered immediately in the browser."
 },
 
 {
@@ -85,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "File watching",
     "title": "Logic",
     "category": "section",
-    "text": "A single file being watched is represented by an object of type LiveServer.WatchedFile. There is two methods to check whether the file has changed and to set the current state as \"unchanged\".The watcher itself is defined as the abstract type LiveServer.FileWatcher. All API functions are implemented for this abstract type. Every file watcher has to be a sub-type of FileWatcher and thus may only change some of the API functions and use the \"default\" implementation for the others. LiveServer.jl\'s default watcher is LiveServer.SimpleWatcher. It just uses all of the default API-function implementations. That is, none of them are specialised for SimpleWatcher, and thus the ones defined for FileWatcher are dispatched.The watcher is started using LiveServer.start. This command spawns an asynchronous task running in an infinite loop that checks the watched files for changes. Unsurprisingly, LiveServer.stop stops this loop. Now, what\'s left to do is to tell the watcher which files should be observed, and what the reaction to a change should be.Files to be watched can be added using LiveServer.watch_file!. The watcher checks whether the file is already watched and thus will not add it twice to its list. Also, renamed or deleted files are automatically removed from the list of watched files. You can add files while the watcher is running or stopped.Finally, you can pass a callback function to the file watcher, which is fired whenever a file changes. Just pass a function receiving an AbstractString as argument to LiveServer.set_callback!. The string contains the path to the file (including its name and extension). In the context of the live server, this callback function triggers a page reload in the browsers viewing a HTML page."
+    "text": "A single file being watched is represented by an object of type LiveServer.WatchedFile. There are two methods to check whether the file has changed and to set the current state as \"unchanged\".The watcher itself is defined as the abstract type LiveServer.FileWatcher. All API functions are implemented for this abstract type. Every file watcher has to be a sub-type of FileWatcher and thus may only change some of the API functions and use the \"default\" implementation for the others. LiveServer.jl\'s default watcher is LiveServer.SimpleWatcher. It just uses all of the default API-function implementations. That is, none of them are specialised for SimpleWatcher, and thus the ones defined for FileWatcher are dispatched.The watcher is started using LiveServer.start. This command spawns an asynchronous task running in an infinite loop that checks the watched files for changes. Unsurprisingly, LiveServer.stop stops this loop. Now, what\'s left to do is to tell the watcher which files should be observed, and what the reaction to a change should be.Files to be watched can be added using LiveServer.watch_file!. The watcher checks whether the file is already watched and thus will not add it twice to its list. Also, renamed or deleted files are automatically removed from the list of watched files. You can add files while the watcher is running or stopped.Finally, you can pass a callback function to the file watcher, which is fired whenever a file changes. Just pass a function receiving an AbstractString as argument to LiveServer.set_callback!. The string contains the path to the file (including its name and extension). In the context of the live server, this callback function triggers a page reload in the browsers viewing a HTML page."
 },
 
 {
@@ -101,7 +85,15 @@ var documenterSearchIndex = {"docs": [
     "page": "File watching",
     "title": "Implementing your own file watcher",
     "category": "section",
-    "text": "[coming soon...]"
+    "text": "There may be circumstances where you want the page-reloading to be triggered by your own mechanism. As a very simple example, you may want to display your own custom messages every-time a file is updated."
+},
+
+{
+    "location": "man/watching/#Using-SimpleWatcher-and-a-custom-callback-1",
+    "page": "File watching",
+    "title": "Using SimpleWatcher and a custom callback",
+    "category": "section",
+    "text": "If you want something custom to happen every time a file is modified, you will want to write your own callback function (the function that is called upon changes in a specific file). The base file_changed_callback that is used calls the internal function update_and_close_viewers! which sends a message to the client (browser) telling it to refresh the page. Typically you will want to keep that part but you may want to modify what happens before.Once you have defined your own callback function, you can wrap it in a SimpleWatcher which will trigger the function every time one of the watched file gets modified.In the example below, we chain the base function with a custom message that gets printed upon every file change.custom_callback(fp::AbstractString) = (println(\"Hello!\"); file_changed_callback(fp))"
 },
 
 {
@@ -285,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Internals",
     "title": "LiveServer.ws_tracker",
     "category": "function",
-    "text": "ws_tracker(::HTTP.Stream)\n\nThe websocket tracker. Upgrades the HTTP request in the stream to a websocket and adds this connection to the viewers in the global dictionary WS_VIEWERS.\n\n\n\n\n\n"
+    "text": "ws_tracker(ws::HTTP.WebSockets.WebSocket, target::AbstractString)\n\nAdds the websocket connection to the viewers in the global dictionary WS_VIEWERS to the entry corresponding to the targeted file.\n\n\n\n\n\n"
 },
 
 {
@@ -293,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Internals",
     "title": "LiveServer.file_changed_callback",
     "category": "function",
-    "text": "file_changed_callback(filepath::AbstractString)\n\nFunction reacting to the change of a file filepath. Is set as callback for the file watcher.\n\n\n\n\n\n"
+    "text": "file_changed_callback(f_path::AbstractString)\n\nFunction reacting to the change of a file f_path. Is set as callback for the file watcher.\n\n\n\n\n\n"
 },
 
 {
