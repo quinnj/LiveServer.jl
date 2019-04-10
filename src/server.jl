@@ -1,10 +1,9 @@
 """
     update_and_close_viewers!(wss::Vector{HTTP.WebSockets.WebSocket})
 
-Take a list of viewers, i.e. WebSocket connections from a client,
-send a message with data "update" to each of them (to trigger a page reload),
-then close the connection. Finally, empty the list since all connections are
-closing anyway and clients will re-connect from the re-loaded page.
+Take a list of viewers, i.e. WebSocket connections from a client, send a message with data "update"
+to each of them (to trigger a page reload), then close the connection. Finally, empty the list
+since all connections are closing anyway and clients will re-connect from the re-loaded page.
 """
 function update_and_close_viewers!(wss::Vector{HTTP.WebSockets.WebSocket})
     foreach(wss) do wsi
@@ -60,15 +59,13 @@ end
 """
     serve_file(fw, req::HTTP.Request)
 
-Handler function for serving files. This takes a file watcher, to which
-files to be watched can be added, and a request (e.g. a path entered in a tab of the
-browser), and converts it to the appropriate file system path. If the path corresponds to a HTML
-file, it will inject the reloading script (see file `client.js`) at the end
-of its body, i.e. directly before the </body> tag.
-All files served are added to the file watcher, which is responsible
-to check whether they're already watched or not.
-Finally the file is served via a 200 (successful) response. If the file does
-not exist, a response with status 404 and message "404 not found" is sent.
+Handler function for serving files. This takes a file watcher, to which files to be watched can be
+added, and a request (e.g. a path entered in a tab of the browser), and converts it to the
+appropriate file system path. If the path corresponds to a HTML file, it will inject the reloading
+script (see file `client.html`) at the end of its body, i.e. directly before the </body> tag.
+All files served are added to the file watcher, which is responsible to check whether they're
+already watched or not. Finally the file is served via a 200 (successful) response. If the file
+does not exist, a response with status 404 and message "404 not found" is sent.
 """
 function serve_file(fw, req::HTTP.Request)
     fs_path = get_fs_path(req.target)

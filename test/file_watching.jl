@@ -15,7 +15,7 @@ write(file2, ".")
     @test wf1.mtime == mtime(file1)
     @test wf2.mtime == mtime(file2)
 
-    # Apply change and check if it's detecte
+    # Apply change and check if it's detected
     t1 = time()
     sleep(FS_WAIT)
     write(file1, "hello")

@@ -14,11 +14,11 @@ makedocs(
         "Home" => "index.md",
         "Manual" => [
             "Functionalities" => "man/functionalities.md",
-            "Extending LiveServer" => "man/extending_ls.md",
+            "Extending LiveServer" => "man/extending_ls.md"
             ],
         "Library" => [
             "Public"    => "lib/public.md",
-            "Internals" => "lib/internals.md",
+            "Internals" => "lib/internals.md"
             ],
         ], # end page
 )
