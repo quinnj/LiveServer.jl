@@ -4,8 +4,10 @@ module LiveServer
 using Sockets
 # the only dependency. NOTE: we use our own patched branch of HTTP.jl for the moment
 # to guarantee that all tasks are properly shut down upon closing the server see
-# https://github.com/JuliaWeb/HTTP.jl/issues/405
-using HTTP
+# https://github.com/JuliaWeb/HTTP.jl/issues/405.
+# NOTE When fixing, change here to using HTTP and in `runtests.jl`
+using HTTPx
+const HTTP = HTTPx
 
 export serve, servedocs
 

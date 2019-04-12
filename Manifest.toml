@@ -38,13 +38,13 @@ version = "0.22.2"
 [[FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
-[[HTTP]]
+[[HTTPx]]
 deps = ["Base64", "Dates", "Distributed", "IniFile", "JSON", "MbedTLS", "Sockets", "Test"]
-git-tree-sha1 = "4a2beedabe7e627e8cea0d3db5a82d1222897dac"
+git-tree-sha1 = "db1cbc33bde9c3f05c9f9b53cbbf504168da8a6f"
 repo-rev = "master"
-repo-url = "https://github.com/tlienart/HTTP.jl"
-uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "0.8.0"
+repo-url = "https://github.com/tlienart/HTTPx.jl"
+uuid = "e3795725-4b94-539f-835e-88d99c26ecdb"
+version = "0.1.0"
 
 [[IniFile]]
 deps = ["Test"]
