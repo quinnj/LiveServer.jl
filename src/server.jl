@@ -338,11 +338,10 @@ function ws_upgrade(http::HTTP.Stream)
     HTTP.setheader(http, "Upgrade" => "websocket")
     HTTP.setheader(http, "Connection" => "Upgrade")
     key = HTTP.header(http, "Sec-WebSocket-Key")
-    HTTP.setheader(http, "Sec-WebSocket-Accept" => HTTP.WebSockets.accept_hash(key))
+    HTTP.setheader(http, "Sec-WebSocket-Accept" => HTTP.WebSockets.hashedkey(key))
     HTTP.startwrite(http)
 
-    io = http.stream
-    return HTTP.WebSockets.WebSocket(io; server=true)
+    return HTTP.WebSocket(http.stream, http.message, http.message.response; client=false)
 end
 
 
@@ -436,7 +435,7 @@ function serve(fw::FileWatcher=SimpleWatcher(file_changed_callback);
     start(fw)
 
     # make request handler
-    req_handler = HTTP.RequestHandlerFunction() do req
+    req_handler = HTTP.Handlers.streamhandler() do req
         req = preprocess_request(req)
         serve_file(fw, req; inject_browser_reload_script = inject_browser_reload_script, allow_cors = allow_cors)
     end
@@ -444,17 +443,15 @@ function serve(fw::FileWatcher=SimpleWatcher(file_changed_callback);
     server = Sockets.listen(parse(IPAddr, host), port)
     url = "http://$(host == string(Sockets.localhost) ? "localhost" : host):$port"
     println("✓ LiveServer listening on $url/ ...\n  (use CTRL+C to shut down)")
-    @async HTTP.listen(host, port;
-                       server=server, readtimeout=0, reuse_limit=0) do http::HTTP.Stream
-        # reuse_limit=0 ensures that there won't be an error if killing and restarting the server.
-        if HTTP.WebSockets.is_upgrade(http.message)
+    HTTP.listen!(server; readtimeout=0) do http::HTTP.Stream
+        if HTTP.WebSockets.isupgrade(http.message)
             # upgrade to websocket
             ws = ws_upgrade(http)
             # add to list of viewers and keep open until written to
             ws_tracker(ws, http.message.target)
         else
             # handle HTTP request
-            HTTP.handle(req_handler, http)
+            return req_handler(http)
         end
     end
 
