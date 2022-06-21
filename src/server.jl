@@ -355,7 +355,7 @@ function ws_tracker(ws::HTTP.WebSockets.WebSocket)
         # forces the websocket to stay open until it's closed by LiveServer (and
         # not by the browser) upon writing a `update` message on the websocket.
         # See update_and_close_viewers
-        while !WebSockets.isclosed(ws)
+        while !ws.writeclosed
             WebSockets.pong(ws)
             sleep(1.0)
         end
