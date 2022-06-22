@@ -172,7 +172,7 @@ end
     @test fs_path == "test_file.html"
 
     tsk = @async LS.HTTP.WebSockets.upgrade(LS.ws_tracker, s)
-    sleep(0.1)
+    sleep(1.0)
 
     # the websocket should have been added to the list
     @test LS.WS_VIEWERS[fs_path] isa Vector{HTTP.WebSockets.WebSocket}
@@ -181,7 +181,7 @@ end
     # simulate a "good" closure (an event caused a write on the websocket and then closes it)
     ws = LS.WS_VIEWERS[fs_path][1]
     close(ws)
-    sleep(0.2)
+    sleep(1.0)
     @test istaskdone(tsk)
     @test !LS.WS_INTERRUPT[]
 
@@ -192,7 +192,7 @@ end
     "Sec-WebSocket-Version" => "13"]), HTTP.Connection(io))
 
     tsk = @async LS.HTTP.WebSockets.upgrade(LS.ws_tracker, s)
-    sleep(0.2)
+    sleep(1.0)
 
     # simulate a "bad" closure
     schedule(tsk, InterruptException(), error=true)
